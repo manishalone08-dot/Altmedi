@@ -7,6 +7,25 @@ export type UserRole =
   | 'tenant_admin'
   | 'platform_admin';
 
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+  tenantId: string;
+  tenantName: string;
+  // Role-specific professional / medical profile details:
+  licenseNumber?: string; // For Pharmacist / Doctor
+  organization?: string; // Clinic, Pharmacy or Hospital name
+  speciality?: string; // For Doctor
+  abhaId?: string; // For Patient
+  knownAllergies?: string[]; // For Patient
+  area?: string; // Locality e.g. College Road, Nashik
+  isVerified: boolean;
+  createdAt: string;
+}
+
 export type AlternativeClassification =
   | 'same_active_ingredient'
   | 'therapeutic_alternative'
