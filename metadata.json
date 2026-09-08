@@ -1,0 +1,6 @@
+{
+  "name": "AltMedi",
+  "description": "Production-grade medicine comparison and medication decision-support platform for India",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
