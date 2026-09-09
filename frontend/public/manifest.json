@@ -1,0 +1,25 @@
+{
+  "short_name": "AltMedi",
+  "name": "AltMedi - Medicine Alternative, Safety & Price Comparison",
+  "description": "Production-grade medicine alternative, safety comparison, and local pharmacy availability platform for India.",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0d9488",
+  "theme_color": "#0d9488",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["medical", "health", "lifestyle"]
+}

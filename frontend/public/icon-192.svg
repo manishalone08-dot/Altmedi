@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f766e" />
+      <stop offset="50%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#14b8a6" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <!-- Background with rounded corners -->
+  <rect width="192" height="192" rx="42" fill="url(#tealGrad)" />
+  <!-- Medical Pill Icon with Glow -->
+  <g filter="url(#shadow)" transform="translate(40, 40) rotate(-35, 56, 56)">
+    <!-- Pill body -->
+    <rect x="24" y="8" width="64" height="96" rx="32" fill="#ffffff" />
+    <!-- Bottom half colored teal -->
+    <path d="M 24 56 A 32 32 0 0 0 88 56 L 88 72 A 32 32 0 0 1 24 72 Z" fill="#0f766e" />
+    <!-- Subtle divider line -->
+    <line x1="24" y1="56" x2="88" y2="56" stroke="#ccfbf1" stroke-width="2.5" />
+    <!-- Medical Cross in top half -->
+    <path d="M 52 24 L 60 24 L 60 32 L 68 32 L 68 40 L 60 40 L 60 48 L 52 48 L 52 40 L 44 40 L 44 32 L 52 32 Z" fill="#0d9488" />
+  </g>
+</svg>
