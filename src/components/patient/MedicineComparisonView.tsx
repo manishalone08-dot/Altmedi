@@ -853,8 +853,8 @@ export const MedicineComparisonView: React.FC<MedicineComparisonViewProps> = ({
     } else if (sortBy === 'distance_asc') {
       list.sort((a, b) => {
         if (userLocation) {
-          const p1 = (PHARMACY_STOCK_REGISTRY[a.id] || [])[0];
-          const p2 = (PHARMACY_STOCK_REGISTRY[b.id] || [])[0];
+          const p1 = (PHARMACY_VENDOR_REGISTRY[a.id] || [])[0];
+          const p2 = (PHARMACY_VENDOR_REGISTRY[b.id] || [])[0];
           const d1 = p1 ? calculateHaversineDistance(userLocation, DEFAULT_NASHIK_CENTER) : 99;
           const d2 = p2 ? calculateHaversineDistance(userLocation, DEFAULT_NASHIK_CENTER) : 99;
           return d1 - d2;
@@ -926,7 +926,7 @@ export const MedicineComparisonView: React.FC<MedicineComparisonViewProps> = ({
 
       // Dispatch SMS Confirmation
       const targetAlt = allAlternatives.find((a) => a.id === altId) || sourceMedicine;
-      const vendorList = PHARMACY_STOCK_REGISTRY[altId] || PHARMACY_STOCK_REGISTRY['demo-alt-01'] || [];
+      const vendorList = PHARMACY_VENDOR_REGISTRY[altId] || PHARMACY_VENDOR_REGISTRY['demo-alt-01'] || [];
       const vendor = vendorList.find((v) => v.vendorId === vendorId);
       const pharmacyName = vendor ? vendor.vendorName : 'Lifeline Pharmacy Hub';
       const price = vendor ? vendor.retailPriceInr : 100;

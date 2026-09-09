@@ -91,16 +91,61 @@ This file serves as the definitive, persistent memory bank for the **AltMedi** c
 - [x] **Frontend Network Layer Migration**: `AltMediService` and `authService` communicate with `/api/v1/...` with resilient fallback to local state if offline.
 - [x] **Immutable Clinical Audit Trail**: Append-only audit events table recording actor, action, previous value, new value, and clinical rationale.
 
+### 3.5 Phase 5: Live AI Pipeline & Integrations (In Progress)
+
+Phase 5 implementation is **partially complete**. The server-side services and client-side integrations have been scaffolded and wired together. The following sub-features are implemented:
+
+#### 3.5.1 Gemini Multimodal OCR Service (`server/services/geminiService.ts`) — ✅ Created
+- [x] Server-side `@google/genai` Gemini 2.0 Flash integration with multimodal image input.
+- [x] Indian prescription-specific prompt engineering for messy cursive handwriting.
+- [x] Structured JSON output parsing: medicine name, strength, dosage form, frequency, duration.
+- [x] Confidence scoring with ambiguity flagging below 0.85 threshold.
+- [x] REST endpoint wired at `/api/v1/prescriptions/extract` (`server/routes/prescriptions.routes.ts`).
+- [ ] **TODO**: End-to-end test with a real handwritten prescription image.
+- [ ] **TODO**: Entity resolution against canonical `medicine_entities` database table (currently uses local catalog).
+
+#### 3.5.2 Real-Time Stock Updates via SSE (`server/services/sseService.ts`) — ✅ Created
+- [x] Express SSE endpoint at `/api/v1/vendors/stream` with `Set<Response>` connection pool.
+- [x] `broadcastStockUpdate()` function emits `OFFER_UPDATED` events to all connected clients.
+- [x] Client-side `EventSource` listener in `MedicineComparisonView.tsx` with live toast notifications.
+- [x] SSE connection status indicator (green/red dot) in patient UI header area.
+- [ ] **TODO**: Connect SSE broadcast to the vendor offer `PUT` route so real price/stock changes push live.
+- [ ] **TODO**: Offer freshness degradation cron job (mark stale at 7 days, expired at 14 days).
+
+#### 3.5.3 GPS Geocoding & Interactive Map (`src/services/geoService.ts`, `PharmacyInteractiveMap.tsx`) — ✅ Created
+- [x] Haversine distance formula for GPS-based distance computation.
+- [x] Browser Geolocation API integration with user consent (`requestUserPosition()`).
+- [x] 6 Nashik pharmacy locations with real GPS coordinates (Lifeline, Nashik Medicos, Wellness Forever, Shree Ganesh, Apollo, Godavari).
+- [x] Interactive SVG pharmacy map (`PharmacyInteractiveMap.tsx`) with Godavari River, road overlays, user pin, pharmacy pins, and distance vectors.
+- [x] GPS detect button and map toggle button in `MedicineComparisonView.tsx`.
+- [x] Distance sorting mode using live GPS coordinates.
+- [ ] **TODO**: Dynamic distance recalculation for all vendor cards when GPS is acquired (currently sorts by Haversine but vendor cards still show static distances).
+
+#### 3.5.4 SMS/WhatsApp Notification Service (`server/services/notificationService.ts`) — ✅ Created
+- [x] Notification service with templated SMS message for reservation confirmations.
+- [x] Express route at `/api/v1/notifications/reservation` (`server/routes/notifications.routes.ts`).
+- [x] Client-side SMS dispatch on stock reservation in `MedicineComparisonView.tsx` with toast notification.
+- [ ] **TODO**: Connect to real SMS provider (Twilio/MSG91/Gupshup) — currently logs to server console.
+- [ ] **TODO**: WhatsApp Business API integration for pharmacist verification status updates.
+- [ ] **TODO**: Notification opt-in/opt-out preferences in user profile.
+
 ---
 
 ## 4. Pending Features
 
-- [ ] **Live Gemini 2.0 Flash Multimodal Pipeline**: Connect real camera captures to the server-side `@google/genai` API with prompt engineering for messy Indian cursive scripts.
-- [ ] **SMS / WhatsApp Notification Dispatch**: Send stock reservation confirmation codes and pharmacist verification status via Twilio or Gupshup.
+### Phase 5 Remaining Work
+- [ ] **End-to-End OCR Testing**: Photograph a real Indian handwritten prescription and validate Gemini extraction accuracy ≥85%.
+- [ ] **SSE ↔ Vendor Route Integration**: Wire `broadcastStockUpdate()` into the vendor offer `PUT` handler so price/stock edits push to all connected patient browsers in real time.
+- [ ] **Dynamic Vendor Card Distances**: When GPS is acquired, recalculate and display real Haversine distances on each pharmacy vendor card (not just sort order).
+- [ ] **Real SMS Provider**: Replace console-log notification dispatch with Twilio/MSG91 API integration.
+- [ ] **Offer Freshness Cron**: Automated background job to degrade offer freshness (fresh → stale → expired) based on `updated_at` timestamps.
+
+### Phase 6 (Future)
 - [ ] **Ayushman Bharat Digital Mission (ABDM) Integration**: Connect to ABDM Milestone 1/2/3 APIs to pull digital prescriptions directly from patient ABHA accounts.
-- [ ] **Geocoding & Interactive Map**: Replace static distance numbers with real Google Maps / Mapbox distance matrices centered around user coordinates in Nashik.
 - [ ] **Multi-Language Support (Localization)**: Full localization in **Marathi (मराठी)**, **Hindi (हिन्दी)**, and **English**.
 - [ ] **Chemist POS Sync Connector**: CSV/API upload adapter for popular Indian pharmacy management software (e.g., Marg ERP, Vyapar, Retailio).
+- [ ] **Multi-Region Tenant Expansion**: Onboarding workflow for Pune, Mumbai, Nagpur networks.
+- [ ] **Mobile PWA / Android APK**: Progressive Web App packaging and Google Play Store distribution.
 
 ---
 
@@ -367,8 +412,11 @@ if (daysSinceLastUpdate <= 7) {
 ## 8. Known Issues & Limitations
 
 1. **State Volatility on Hard Refresh**: Domain entities modified in the session (new pharmacist reviews, edited vendor prices) are stored in memory in `AltMediService`. Reloading the page resets them back to `catalogData.ts` defaults (though user authentication in `localStorage` persists).
-2. **Prescription OCR Mocking**: Prescription parsing currently returns pre-configured mock extraction items instead of executing live multimodal Gemini inference.
-3. **Static Nashik Distances**: Chemist distances (e.g., 0.8 km, 1.4 km) are pre-calculated relative to College Road rather than dynamically computed from user GPS coordinates.
+2. **Gemini OCR Requires API Key**: The Gemini multimodal OCR service (`server/services/geminiService.ts`) is implemented but requires a valid `GEMINI_API_KEY` in `.env`. Without it, prescription extraction falls back to mock data.
+3. **SSE Not Wired to Vendor Updates**: The SSE service broadcasts events, and the client listens, but vendor offer `PUT` requests do not yet trigger `broadcastStockUpdate()` — so live push is not yet end-to-end functional.
+4. **Vendor Card Distances Still Static**: Even after GPS detection, individual pharmacy vendor cards in `MedicineComparisonView.tsx` still display their hardcoded `distanceKm` values. Only the sort order uses live GPS.
+5. **SMS Notifications Log-Only**: The notification route at `/api/v1/notifications/reservation` generates a confirmation code and toast but does not dispatch real SMS — it logs to the server console.
+6. **Interactive Map is SVG-Based**: The pharmacy map (`PharmacyInteractiveMap.tsx`) uses a custom SVG projection rather than a real map tile provider (Google Maps / Mapbox). Adequate for demo, but not production-grade.
 
 ---
 
@@ -376,9 +424,11 @@ if (daysSinceLastUpdate <= 7) {
 
 ```text
 Q4 2026 (Nashik Pilot Launch)
-  ├── Live Gemini 2.0 Vision server integration for handwritten doctor slips
-  ├── PostgreSQL + Prisma DB backend replacing in-memory catalog
-  └── SMS / WhatsApp reservation confirmations for Nashik chemist partners
+  ├── ✅ PostgreSQL + Prisma DB backend (Phase 4 complete)
+  ├── 🔧 Live Gemini 2.0 Vision server integration (service created, needs E2E testing)
+  ├── 🔧 Real-time SSE stock push (service created, needs vendor route wiring)
+  ├── 🔧 GPS geocoding & interactive map (working, needs dynamic vendor card distances)
+  └── 🔧 SMS reservation confirmations (service created, needs real SMS provider)
 
 Q1 2027 (Regional Maharashtra Expansion)
   ├── Marathi & Hindi multi-language UI localization
@@ -390,3 +440,19 @@ Q2 2027 (ABDM National Rollout)
   ├── National Medical Register (NMR) auto-verification for prescribing doctors
   └── Mobile app packaging for Android (PWA / React Native)
 ```
+
+---
+
+## 10. Phase 5 File Inventory
+
+| File | Purpose | Status |
+| :--- | :--- | :--- |
+| `server/services/geminiService.ts` | Gemini 2.0 Flash multimodal OCR with Indian prescription prompt | ✅ Created |
+| `server/services/sseService.ts` | SSE connection pool & `broadcastStockUpdate()` | ✅ Created |
+| `server/services/notificationService.ts` | SMS/WhatsApp notification dispatch (console-log mode) | ✅ Created |
+| `server/routes/prescriptions.routes.ts` | `/api/v1/prescriptions/extract` endpoint | ✅ Wired to Gemini service |
+| `server/routes/vendors.routes.ts` | `/api/v1/vendors/stream` SSE endpoint added | ✅ SSE endpoint active |
+| `server/routes/notifications.routes.ts` | `/api/v1/notifications/reservation` SMS route | ✅ Created |
+| `src/services/geoService.ts` | Haversine distance, GPS request, Nashik pharmacy coordinates | ✅ Created |
+| `src/components/patient/PharmacyInteractiveMap.tsx` | Interactive SVG pharmacy map with GPS integration | ✅ Created |
+| `src/components/patient/MedicineComparisonView.tsx` | SSE listener, GPS detect, map toggle, SMS reservation toast | ✅ Integrated |

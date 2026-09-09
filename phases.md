@@ -15,7 +15,7 @@ A structured, phased roadmap for evolving AltMedi from its current Nashik pilot 
 | **Phase 2** | Authentication & Role System | ✅ Complete | Sep 2026 (Week 1) | Multi-role auth, session persistence, and ABHA/license capture |
 | **Phase 3** | AI Context & Documentation | ✅ Complete | Sep 2026 (Week 1) | Persistent AI memory (`decisions.md`, `rules.md`, `memory.md`, `changelog.md`, `phases.md`) |
 | **Phase 4** | Production Backend & Database | ✅ Complete | Sep 2026 | PostgreSQL, Prisma ORM, REST API, and data persistence |
-| **Phase 5** | Live AI Pipeline & Integrations | 🔲 Not Started | Oct–Nov 2026 | Gemini 2.0 multimodal OCR, SMS/WhatsApp notifications, geocoding |
+| **Phase 5** | Live AI Pipeline & Integrations | 🔧 In Progress | Oct–Nov 2026 | Gemini 2.0 multimodal OCR, SMS/WhatsApp notifications, geocoding |
 | **Phase 6** | Scale, Localization & Compliance | 🔲 Not Started | Dec 2026 – Q1 2027 | Multi-region expansion, Marathi/Hindi localization, ABDM certification |
 
 ---
@@ -195,7 +195,7 @@ Replace the in-memory `AltMediService` with a persistent PostgreSQL database, Pr
 
 ## Phase 5: Live AI Pipeline & Integrations
 
-**Status**: 🔲 Not Started  
+**Status**: 🔧 In Progress  
 **Timeline**: October – November 2026  
 **Depends on**: Phase 4
 
@@ -205,27 +205,28 @@ Connect the prescription camera to Google's Gemini 2.0 Flash multimodal model fo
 ### Deliverables
 
 #### 5.1 Gemini Multimodal OCR Pipeline
-- [ ] Server-side endpoint `/api/v1/prescriptions/extract` accepting base64 image payloads
-- [ ] Gemini 2.0 Flash prompt engineering for Indian prescription handwriting patterns
-- [ ] Structured JSON output schema: medicine name, strength, dosage form, frequency, duration
-- [ ] Confidence scoring with automatic ambiguity flagging below 0.85 threshold
+- [x] Server-side endpoint `/api/v1/prescriptions/extract` accepting base64 image payloads
+- [x] Gemini 2.0 Flash prompt engineering for Indian prescription handwriting patterns
+- [x] Structured JSON output schema: medicine name, strength, dosage form, frequency, duration
+- [x] Confidence scoring with automatic ambiguity flagging below 0.85 threshold
 - [ ] Entity resolution against the canonical `medicine_entities` table
 - [ ] Fallback to manual text entry when Gemini confidence is below 0.60
 
 #### 5.2 Notification Service
-- [ ] SMS dispatch via Twilio or MSG91 for reservation confirmation codes
+- [x] SMS dispatch service created (console-log mode, needs real Twilio/MSG91 integration)
 - [ ] WhatsApp Business API integration for pharmacist verification status updates
 - [ ] Notification preference settings in user profile (opt-in/opt-out)
 - [ ] Templated message library compliant with TRAI DND regulations
 
 #### 5.3 Geocoding & Distance Matrix
 - [ ] Google Maps Platform or Mapbox integration for pharmacy distance calculations
-- [ ] Browser Geolocation API for patient's current position (with consent)
-- [ ] Dynamic distance sorting replacing static pre-calculated values
-- [ ] Interactive pharmacy map view as an alternative to list format
+- [x] Browser Geolocation API for patient's current position (with consent)
+- [x] Dynamic distance sorting replacing static pre-calculated values
+- [x] Interactive pharmacy map view as an alternative to list format
 
 #### 5.4 Real-Time Stock Updates
-- [ ] WebSocket or Server-Sent Events (SSE) for live vendor offer push updates
+- [x] Server-Sent Events (SSE) for live vendor offer push updates (client + server scaffolded)
+- [ ] Wire SSE broadcast into vendor offer PUT route for end-to-end live push
 - [ ] Automatic offer freshness degradation cron job (mark stale at 7 days, expired at 14 days)
 - [ ] Push notification to patient when a reserved medicine is confirmed available
 
@@ -302,7 +303,7 @@ graph LR
     P1 --> P4["Phase 4\nProduction Backend\n✅ Complete"]
     P2 --> P4
     P1 --> P3["Phase 3\nAI Context & Docs\n✅ Complete"]
-    P4 --> P5["Phase 5\nLive AI & Integrations\n🔲 Not Started"]
+    P4 --> P5["Phase 5\nLive AI & Integrations\n🔧 In Progress"]
     P4 --> P6["Phase 6\nScale & Compliance\n🔲 Not Started"]
     P5 --> P6
 
@@ -310,7 +311,7 @@ graph LR
     style P2 fill:#059669,color:#fff
     style P3 fill:#059669,color:#fff
     style P4 fill:#059669,color:#fff
-    style P5 fill:#475569,color:#fff
+    style P5 fill:#d97706,color:#fff
     style P6 fill:#475569,color:#fff
 ```
 
