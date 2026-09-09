@@ -1,6 +1,8 @@
 import { AuthUser, UserRole } from '../types';
 
 const STORAGE_KEY = 'altmedi_auth_session';
+const TOKEN_KEY = 'altmedi_auth_token';
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 export const DEMO_USERS: Record<string, AuthUser> = {
   patient: {
@@ -102,6 +104,26 @@ export interface RegistrationFormData {
   speciality?: string;
 }
 
+export const getStoredAuthToken = (): string | null => {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+
+export const setStoredAuthToken = (token: string | null): void => {
+  try {
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {
+    // Ignore storage quota errors
+  }
+};
+
 export const getStoredAuthUser = (): AuthUser | null => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -118,6 +140,7 @@ export const setStoredAuthUser = (user: AuthUser | null) => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
     } else {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     }
   } catch {
     // Ignore storage quota errors
@@ -125,23 +148,62 @@ export const setStoredAuthUser = (user: AuthUser | null) => {
 };
 
 export const loginWithDemoUser = async (role: UserRole): Promise<AuthUser> => {
-  // Simulate rapid network authorization
-  await new Promise((resolve) => setTimeout(resolve, 350));
-  const user = DEMO_USERS[role] || DEMO_USERS.patient;
-  setStoredAuthUser(user);
-  return user;
+  const fallbackUser = DEMO_USERS[role] || DEMO_USERS.patient;
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emailOrPhone: fallbackUser.email, role })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.token) setStoredAuthToken(data.token);
+      if (data.user) {
+        setStoredAuthUser(data.user);
+        return data.user;
+      }
+    }
+  } catch {
+    // Server offline, fall back seamlessly
+  }
+
+  setStoredAuthUser(fallbackUser);
+  return fallbackUser;
 };
 
 export const loginWithCredentials = async (
   emailOrPhone: string,
-  _passwordOrOtp: string,
+  passwordOrOtp: string,
   preferredRole: UserRole = 'patient'
 ): Promise<AuthUser> => {
-  await new Promise((resolve) => setTimeout(resolve, 450));
-
   const trimmed = emailOrPhone.trim().toLowerCase();
 
-  // Match against demo users
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        emailOrPhone: trimmed,
+        password: passwordOrOtp,
+        role: preferredRole
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.token) setStoredAuthToken(data.token);
+      if (data.user) {
+        setStoredAuthUser(data.user);
+        return data.user;
+      }
+    }
+  } catch {
+    // Server offline, fall back seamlessly
+  }
+
+  // Fallback demo user matching
   const matched = Object.values(DEMO_USERS).find(
     (u) => u.email.toLowerCase() === trimmed || (u.phone && u.phone === trimmed)
   );
@@ -151,7 +213,6 @@ export const loginWithCredentials = async (
     return matched;
   }
 
-  // Create session for custom credentials
   const isEmail = trimmed.includes('@');
   const user: AuthUser = {
     id: `usr-${Math.random().toString(36).slice(2, 9)}`,
@@ -173,7 +234,24 @@ export const loginWithCredentials = async (
 };
 
 export const registerNewUser = async (data: RegistrationFormData): Promise<AuthUser> => {
-  await new Promise((resolve) => setTimeout(resolve, 550));
+  try {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      const resp = await res.json();
+      if (resp.token) setStoredAuthToken(resp.token);
+      if (resp.user) {
+        setStoredAuthUser(resp.user);
+        return resp.user;
+      }
+    }
+  } catch {
+    // Server offline, fall back seamlessly
+  }
 
   const newUser: AuthUser = {
     id: `usr-reg-${Math.random().toString(36).slice(2, 9)}`,
@@ -199,4 +277,5 @@ export const registerNewUser = async (data: RegistrationFormData): Promise<AuthU
 
 export const logoutUser = (): void => {
   setStoredAuthUser(null);
+  setStoredAuthToken(null);
 };

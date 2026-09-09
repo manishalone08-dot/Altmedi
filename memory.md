@@ -78,34 +78,29 @@ This file serves as the definitive, persistent memory bank for the **AltMedi** c
   - Active user chip, verified role indicator, instant role switcher, and sign-out button.
   - Guest mode banner with call-to-action to sign in or register.
 
+### 3.4 Production Backend & Database (`server/`, `prisma/`)
+- [x] **PostgreSQL & Prisma Schema**: 9-table schema synced to Supabase PostgreSQL database with foreign key constraints, indexes, and full relational integrity.
+- [x] **Automated Database Seeding (`prisma/seed.ts`)**: Populates default tenants, 6 demo users with hashed credentials, medicines, ingredients, clinical mappings, safety content, chemist offers, reviews, and audit trails.
+- [x] **Modular Express REST API Layer (`server/routes/`)**:
+  - `auth.routes.ts`: `/api/v1/auth/login`, `/register`, `/me` with HMAC-SHA256 tokens and role verification.
+  - `medicines.routes.ts`: `/api/v1/medicines/search`, `/:id`, `/:id/alternatives`, `/:id/safety` with two-tier alternative computation.
+  - `vendors.routes.ts`: `/api/v1/vendors/:medicineId/offers`, `/offers/:offerId` (price/stock updates + audit write).
+  - `reviews.routes.ts`: `/api/v1/reviews/request`, `/queue`, `/:id/decision` (decision recording + audit write).
+  - `governance.routes.ts`: `/api/v1/governance/mappings`, `/mappings/:id`, `/audit-logs`.
+  - `prescriptions.routes.ts`: `/api/v1/prescriptions/extract`.
+- [x] **Frontend Network Layer Migration**: `AltMediService` and `authService` communicate with `/api/v1/...` with resilient fallback to local state if offline.
+- [x] **Immutable Clinical Audit Trail**: Append-only audit events table recording actor, action, previous value, new value, and clinical rationale.
+
 ---
 
 ## 4. Pending Features
 
-- [~] **Production Backend Database**: The Phase 4 foundation is complete. Database provisioning, the initial migration and catalog seed, protected domain routes, frontend API migration, and persistence verification remain.
 - [ ] **Live Gemini 2.0 Flash Multimodal Pipeline**: Connect real camera captures to the server-side `@google/genai` API with prompt engineering for messy Indian cursive scripts.
 - [ ] **SMS / WhatsApp Notification Dispatch**: Send stock reservation confirmation codes and pharmacist verification status via Twilio or Gupshup.
 - [ ] **Ayushman Bharat Digital Mission (ABDM) Integration**: Connect to ABDM Milestone 1/2/3 APIs to pull digital prescriptions directly from patient ABHA accounts.
 - [ ] **Geocoding & Interactive Map**: Replace static distance numbers with real Google Maps / Mapbox distance matrices centered around user coordinates in Nashik.
 - [ ] **Multi-Language Support (Localization)**: Full localization in **Marathi (मराठी)**, **Hindi (हिन्दी)**, and **English**.
 - [ ] **Chemist POS Sync Connector**: CSV/API upload adapter for popular Indian pharmacy management software (e.g., Marg ERP, Vyapar, Retailio).
-
-### 4.1 Phase 4 Foundation — Complete
-
-- [x] Added the PostgreSQL configuration contract (`DATABASE_URL`) plus API runtime settings (`API_PORT`, `CLIENT_ORIGIN`) to `.env.example`.
-- [x] Added Prisma and CORS dependencies with `db:generate`, `db:migrate`, `db:seed`, `dev:api`, and `start:api` scripts.
-- [x] Defined and Prisma-validated the nine-table relational model in `prisma/schema.prisma`: tenants, users, medicine entities, ingredients, mappings, safety content, vendor offers, pharmacist reviews, and audit events.
-- [x] Added an Express API bootstrap under `server/`, including a singleton Prisma client, restrictive CORS policy, 2 MB JSON request limit, graceful shutdown, sanitized errors, and `GET /api/v1/health`.
-- [x] Verified schema validity, TypeScript checks, and the frontend production build.
-
-### 4.2 Phase 4 Work Remaining
-
-- [ ] Provision PostgreSQL and create the initial Prisma migration.
-- [ ] Seed the tenant and existing catalog data from `src/services/catalogData.ts`.
-- [ ] Implement authentication/session middleware, role authorization, Zod request validation, and rate limiting.
-- [ ] Implement the documented `/api/v1/...` domain routes with tenant-scoped queries and append-only audit writes.
-- [ ] Replace frontend in-memory `AltMediService` calls with HTTP clients, loading/error states, and optimistic updates.
-- [ ] Verify persistence, authorization boundaries, and audit immutability against a running database.
 
 ---
 

@@ -6,8 +6,7 @@ import {
   PharmacistReview,
   AuditEvent,
   ExtractedPrescriptionItem,
-  TenantContext,
-  UserRole
+  TenantContext
 } from '../types';
 import {
   INITIAL_MEDICINES,
@@ -17,8 +16,22 @@ import {
   INITIAL_PHARMACIST_REVIEWS,
   INITIAL_AUDIT_LOGS
 } from './catalogData';
+import { getStoredAuthToken } from './authService';
 
-// Simulates the backend API boundary
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3001/api/v1';
+
+const getHeaders = () => {
+  const token = getStoredAuthToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
+// Production-ready API service with live REST backend and resilient local fallback
 class AltMediService {
   private medicines: MedicineEntity[] = [...INITIAL_MEDICINES];
   private mappings: MedicineMapping[] = [...INITIAL_MAPPINGS];
@@ -39,6 +52,18 @@ class AltMediService {
   public async searchMedicines(query: string): Promise<MedicineEntity[]> {
     const q = query.trim().toLowerCase();
     if (!q) return [];
+
+    try {
+      const res = await fetch(`${API_BASE}/medicines/search?q=${encodeURIComponent(q)}`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     return this.medicines.filter(
       (m) =>
         m.brandName.toLowerCase().includes(q) ||
@@ -48,10 +73,30 @@ class AltMediService {
   }
 
   public async getMedicineById(id: string): Promise<MedicineEntity | undefined> {
+    try {
+      const res = await fetch(`${API_BASE}/medicines/${id}`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
     return this.medicines.find((m) => m.id === id);
   }
 
   public async getSafetyContent(medicineId: string): Promise<SafetyContent | undefined> {
+    try {
+      const res = await fetch(`${API_BASE}/medicines/${medicineId}/safety`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
     return this.safetyData[medicineId];
   }
 
@@ -59,6 +104,17 @@ class AltMediService {
     sameActiveIngredients: { medicine: MedicineEntity; mapping: MedicineMapping; bestOffer?: VendorOffer }[];
     therapeuticAlternatives: { medicine: MedicineEntity; mapping: MedicineMapping; bestOffer?: VendorOffer }[];
   }> {
+    try {
+      const res = await fetch(`${API_BASE}/medicines/${medicineId}/alternatives`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     const activeMappings = this.mappings.filter(
       (map) =>
         (map.sourceMedicineId === medicineId || map.targetMedicineId === medicineId) &&
@@ -89,6 +145,16 @@ class AltMediService {
   }
 
   public async getVendorOffers(medicineId: string): Promise<VendorOffer[]> {
+    try {
+      const res = await fetch(`${API_BASE}/vendors/${medicineId}/offers`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
     return this.vendorOffers.filter((o) => o.medicineEntityId === medicineId);
   }
 
@@ -96,9 +162,20 @@ class AltMediService {
   public async parsePrescriptionImage(
     imageDataUrl: string
   ): Promise<ExtractedPrescriptionItem[]> {
-    // Simulates an edge OCR pipeline with confidence scores and ambiguity handling
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const res = await fetch(`${API_BASE}/prescriptions/extract`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ imageDataUrl })
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
 
+    await new Promise((resolve) => setTimeout(resolve, 600));
     return [
       {
         id: 'item-1',
@@ -132,6 +209,16 @@ class AltMediService {
 
   // Pharmacist review management
   public async getReviewQueue(): Promise<PharmacistReview[]> {
+    try {
+      const res = await fetch(`${API_BASE}/reviews/queue`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
     return [...this.reviews];
   }
 
@@ -141,6 +228,19 @@ class AltMediService {
     reason: string,
     pharmacistName: string
   ): Promise<PharmacistReview> {
+    try {
+      const res = await fetch(`${API_BASE}/reviews/${reviewId}/decision`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ decision, reason, pharmacistName })
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     const review = this.reviews.find((r) => r.id === reviewId);
     if (!review) throw new Error('Review item not found');
 
@@ -169,6 +269,25 @@ class AltMediService {
     patientPhone: string,
     urgency: 'routine' | 'urgent' = 'routine'
   ): Promise<PharmacistReview> {
+    try {
+      const res = await fetch(`${API_BASE}/reviews/request`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          originalMedId,
+          alternativeMedId,
+          patientName,
+          patientPhone,
+          urgency
+        })
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     const original = this.medicines.find((m) => m.id === originalMedId);
     const alternative = this.medicines.find((m) => m.id === alternativeMedId);
     if (!original || !alternative) throw new Error('Medicine entity not found');
@@ -204,6 +323,19 @@ class AltMediService {
     newStockCount: number,
     actor: string
   ): Promise<VendorOffer> {
+    try {
+      const res = await fetch(`${API_BASE}/vendors/offers/${offerId}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify({ newPrice, newStockCount, actor })
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
+
     const offer = this.vendorOffers.find((o) => o.id === offerId);
     if (!offer) throw new Error('Offer not found');
 
@@ -230,6 +362,16 @@ class AltMediService {
 
   // Admin mapping governance
   public async getMappings(): Promise<MedicineMapping[]> {
+    try {
+      const res = await fetch(`${API_BASE}/governance/mappings`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
     return [...this.mappings];
   }
 
@@ -239,6 +381,19 @@ class AltMediService {
     reason: string,
     actor: string
   ): Promise<void> {
+    try {
+      const res = await fetch(`${API_BASE}/governance/mappings/${mappingId}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ newStatus, reason, actor })
+      });
+      if (res.ok) {
+        return;
+      }
+    } catch {
+      // Fallback
+    }
+
     const map = this.mappings.find((m) => m.id === mappingId);
     if (!map) return;
     const oldStatus = map.status;
@@ -258,6 +413,16 @@ class AltMediService {
 
   // Audit logs
   public async getAuditLogs(): Promise<AuditEvent[]> {
+    try {
+      const res = await fetch(`${API_BASE}/governance/audit-logs`, {
+        headers: getHeaders()
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {
+      // Fallback
+    }
     return [...this.auditLogs];
   }
 

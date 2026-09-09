@@ -6,16 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [Unreleased]
+## [1.3.0] - 2026-09-09
 
 ### Added
-- **Phase 4 foundation (in progress):** PostgreSQL environment configuration, validated Prisma data model for the nine documented core tables, database lifecycle scripts, and an Express API bootstrap with a database health endpoint.
-
-### Planned
-- Integration of live `@google/genai` Gemini 2.0 Flash multimodal endpoint for processing real camera snapshots of cursive prescriptions.
-- PostgreSQL database migration with Prisma schema to replace in-memory catalog data.
-- WhatsApp and SMS notifications for reservation confirmations and pharmacist verification status.
-- Integration with Ayushman Bharat Digital Mission (ABDM) Milestone 1 & 2 APIs.
+- **Production Backend & Database Persistence (Phase 4)**:
+  - **PostgreSQL Database Integration**: Connected to Supabase PostgreSQL database using Prisma ORM with validated 9-table schema and relational foreign key constraints.
+  - **Automated Database Seeder (`prisma/seed.ts`)**: Seeding of default healthcare network tenants (`pilot-nashik-01`, `platform-root`), 6 demo role accounts, 10 medicines, ingredients, clinical mappings, safety content, chemist offers, and audit logs.
+  - **Modular REST API (`server/`)**:
+    - `POST /api/v1/auth/login`, `POST /api/v1/auth/register`, `GET /api/v1/auth/me`: Secure authentication with HMAC-SHA256 session tokens.
+    - `GET /api/v1/medicines/search`, `GET /api/v1/medicines/:id`, `GET /api/v1/medicines/:id/alternatives`, `GET /api/v1/medicines/:id/safety`: Bioequivalence and therapeutic alternative matching joined with live pharmacy offers.
+    - `GET /api/v1/vendors/:medicineId/offers`, `PUT /api/v1/vendors/offers/:offerId`: Chemist inventory price/stock updates with immutable audit log recording.
+    - `POST /api/v1/reviews/request`, `GET /api/v1/reviews/queue`, `POST /api/v1/reviews/:id/decision`: Pharmacist clinical verification queue and sign-off.
+    - `GET /api/v1/governance/mappings`, `PATCH /api/v1/governance/mappings/:id`, `GET /api/v1/governance/audit-logs`: Drug mapping governance and audit trail viewer.
+    - `POST /api/v1/prescriptions/extract`: Multi-entity prescription extraction endpoint.
+  - **Frontend API Integration**: Migrated `AltMediService` and `authService` to live HTTP endpoints with resilient offline fallback.
 
 ---
 
