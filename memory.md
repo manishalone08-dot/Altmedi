@@ -30,7 +30,8 @@ This file serves as the definitive, persistent memory bank for the **AltMedi** c
 | **Icons** | Lucide React | `^0.546.0` | Comprehensive medical, navigational, and UI icons |
 | **Animations** | Motion (Framer Motion) | `^12.23.24` | Smooth transitions, sheet modals, and micro-interactions |
 | **AI / Multimodal** | `@google/genai` (Gemini API) | `^2.4.0` | Server-side multimodal handwriting OCR & extraction |
-| **Backend / Runtime** | Express + TSX (Node.js) | `^4.21.2` | Micro-API boundary and runtime support |
+| **Backend / Runtime** | Express + TSX (Node.js) | `^4.21.2` | REST API process and runtime support |
+| **ORM / Database Schema** | Prisma + PostgreSQL | `^6.16.0` | Validated relational schema and generated database client |
 | **Environment Config** | Dotenv | `^17.2.3` | Environment variable management |
 | **Session Storage** | HTML5 LocalStorage | Browser Native | Persistence for `altmedi_auth_session` |
 
@@ -81,13 +82,30 @@ This file serves as the definitive, persistent memory bank for the **AltMedi** c
 
 ## 4. Pending Features
 
-- [ ] **Production Backend Database**: Replace the in-memory `AltMediService` with a persistent PostgreSQL / Supabase backend managed with Prisma or Drizzle ORM.
+- [~] **Production Backend Database**: The Phase 4 foundation is complete. Database provisioning, the initial migration and catalog seed, protected domain routes, frontend API migration, and persistence verification remain.
 - [ ] **Live Gemini 2.0 Flash Multimodal Pipeline**: Connect real camera captures to the server-side `@google/genai` API with prompt engineering for messy Indian cursive scripts.
 - [ ] **SMS / WhatsApp Notification Dispatch**: Send stock reservation confirmation codes and pharmacist verification status via Twilio or Gupshup.
 - [ ] **Ayushman Bharat Digital Mission (ABDM) Integration**: Connect to ABDM Milestone 1/2/3 APIs to pull digital prescriptions directly from patient ABHA accounts.
 - [ ] **Geocoding & Interactive Map**: Replace static distance numbers with real Google Maps / Mapbox distance matrices centered around user coordinates in Nashik.
 - [ ] **Multi-Language Support (Localization)**: Full localization in **Marathi (मराठी)**, **Hindi (हिन्दी)**, and **English**.
 - [ ] **Chemist POS Sync Connector**: CSV/API upload adapter for popular Indian pharmacy management software (e.g., Marg ERP, Vyapar, Retailio).
+
+### 4.1 Phase 4 Foundation — Complete
+
+- [x] Added the PostgreSQL configuration contract (`DATABASE_URL`) plus API runtime settings (`API_PORT`, `CLIENT_ORIGIN`) to `.env.example`.
+- [x] Added Prisma and CORS dependencies with `db:generate`, `db:migrate`, `db:seed`, `dev:api`, and `start:api` scripts.
+- [x] Defined and Prisma-validated the nine-table relational model in `prisma/schema.prisma`: tenants, users, medicine entities, ingredients, mappings, safety content, vendor offers, pharmacist reviews, and audit events.
+- [x] Added an Express API bootstrap under `server/`, including a singleton Prisma client, restrictive CORS policy, 2 MB JSON request limit, graceful shutdown, sanitized errors, and `GET /api/v1/health`.
+- [x] Verified schema validity, TypeScript checks, and the frontend production build.
+
+### 4.2 Phase 4 Work Remaining
+
+- [ ] Provision PostgreSQL and create the initial Prisma migration.
+- [ ] Seed the tenant and existing catalog data from `src/services/catalogData.ts`.
+- [ ] Implement authentication/session middleware, role authorization, Zod request validation, and rate limiting.
+- [ ] Implement the documented `/api/v1/...` domain routes with tenant-scoped queries and append-only audit writes.
+- [ ] Replace frontend in-memory `AltMediService` calls with HTTP clients, loading/error states, and optimistic updates.
+- [ ] Verify persistence, authorization boundaries, and audit immutability against a running database.
 
 ---
 

@@ -160,7 +160,8 @@ Replace the in-memory `AltMediService` with a persistent PostgreSQL database, Pr
 
 #### 4.1 Database Setup
 - [ ] PostgreSQL instance (local Docker or Supabase hosted)
-- [~] Prisma schema defining all 9 tables from `memory.md` database schema — added; migration and validation pending dependency install
+- [x] Prisma schema defining all 9 tables from `memory.md` database schema
+- [~] API bootstrap: Express process, CORS policy, Prisma singleton, and database health endpoint — added; domain routes pending
 - [ ] Initial seed migration with existing `catalogData.ts` data
 - [ ] Row-level security policies scoped by `tenant_id`
 
