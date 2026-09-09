@@ -5,6 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev:api": "tsx watch server/index.ts",
+    "start:api": "tsx server/index.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
@@ -19,8 +24,11 @@
     "react-dom": "^19.0.1",
     "vite": "^6.2.3",
     "express": "^4.21.2",
+    "@prisma/client": "^6.16.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "motion": "^12.23.24"
+    "motion": "^12.23.24",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
@@ -30,6 +38,8 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
-    "@types/express": "^4.17.21"
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "prisma": "^6.16.0"
   }
 }

@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- **Phase 4 foundation (in progress):** PostgreSQL environment configuration, Prisma data model for the nine documented core tables, and database lifecycle scripts.
+
 ### Planned
 - Integration of live `@google/genai` Gemini 2.0 Flash multimodal endpoint for processing real camera snapshots of cursive prescriptions.
 - PostgreSQL database migration with Prisma schema to replace in-memory catalog data.

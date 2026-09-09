@@ -14,7 +14,7 @@ A structured, phased roadmap for evolving AltMedi from its current Nashik pilot 
 | **Phase 1** | Foundation & MVP | ✅ Complete | Aug 2026 | Core architecture, comparison engine, and demo catalog |
 | **Phase 2** | Authentication & Role System | ✅ Complete | Sep 2026 (Week 1) | Multi-role auth, session persistence, and ABHA/license capture |
 | **Phase 3** | AI Context & Documentation | ✅ Complete | Sep 2026 (Week 1) | Persistent AI memory (`decisions.md`, `rules.md`, `memory.md`, `changelog.md`, `phases.md`) |
-| **Phase 4** | Production Backend & Database | 🔲 Not Started | Sep–Oct 2026 | PostgreSQL, Prisma ORM, REST API, and data persistence |
+| **Phase 4** | Production Backend & Database | 🔄 In Progress | Sep–Oct 2026 | PostgreSQL, Prisma ORM, REST API, and data persistence |
 | **Phase 5** | Live AI Pipeline & Integrations | 🔲 Not Started | Oct–Nov 2026 | Gemini 2.0 multimodal OCR, SMS/WhatsApp notifications, geocoding |
 | **Phase 6** | Scale, Localization & Compliance | 🔲 Not Started | Dec 2026 – Q1 2027 | Multi-region expansion, Marathi/Hindi localization, ABDM certification |
 
@@ -149,7 +149,7 @@ Create persistent AI context files that enable any AI coding assistant to unders
 
 ## Phase 4: Production Backend & Database
 
-**Status**: 🔲 Not Started  
+**Status**: 🔄 In Progress  
 **Timeline**: September – October 2026  
 **Depends on**: Phase 1, Phase 2
 
@@ -160,7 +160,7 @@ Replace the in-memory `AltMediService` with a persistent PostgreSQL database, Pr
 
 #### 4.1 Database Setup
 - [ ] PostgreSQL instance (local Docker or Supabase hosted)
-- [ ] Prisma schema defining all 9 tables from `memory.md` database schema
+- [~] Prisma schema defining all 9 tables from `memory.md` database schema — added; migration and validation pending dependency install
 - [ ] Initial seed migration with existing `catalogData.ts` data
 - [ ] Row-level security policies scoped by `tenant_id`
 
