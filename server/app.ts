@@ -9,6 +9,8 @@ import { reviewsRouter } from './routes/reviews.routes';
 import { governanceRouter } from './routes/governance.routes';
 import { prescriptionsRouter } from './routes/prescriptions.routes';
 
+import { notificationsRouter } from './routes/notifications.routes';
+
 export const app = express();
 
 app.disable('x-powered-by');
@@ -38,6 +40,7 @@ app.use('/api/v1/vendors', vendorsRouter);
 app.use('/api/v1/reviews', reviewsRouter);
 app.use('/api/v1/governance', governanceRouter);
 app.use('/api/v1/prescriptions', prescriptionsRouter);
+app.use('/api/v1/notifications', notificationsRouter);
 
 // 404 handler
 app.use((_request, response) => {

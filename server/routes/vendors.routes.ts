@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 import { validateBody } from '../middleware/validate';
 import { optionalAuth, AuthenticatedRequest } from '../middleware/auth';
+import { sseService } from '../services/sseService';
 
 export const vendorsRouter = Router();
 
@@ -10,6 +11,11 @@ const updateOfferSchema = z.object({
   newPrice: z.number().positive('Price must be greater than 0'),
   newStockCount: z.number().int().nonnegative('Stock count must be non-negative'),
   actor: z.string().optional()
+});
+
+// GET /api/v1/vendors/stream (SSE real-time updates)
+vendorsRouter.get('/stream', (_req: Request, res: Response): void => {
+  sseService.addClient(res);
 });
 
 // GET /api/v1/vendors/:medicineId/offers
@@ -96,7 +102,7 @@ vendorsRouter.put(
         }
       });
 
-      res.status(200).json({
+      const formattedOffer = {
         id: updated.id,
         vendorId: updated.vendorId,
         vendorName: updated.vendorName,
@@ -111,7 +117,12 @@ vendorsRouter.put(
         updatedAt: 'Just now',
         freshness: updated.freshness,
         isStale: updated.isStale
-      });
+      };
+
+      // Broadcast live update over SSE to all connected clients
+      sseService.broadcast('OFFER_UPDATED', formattedOffer);
+
+      res.status(200).json(formattedOffer);
     } catch (error) {
       console.error('Error updating vendor offer:', error);
       res.status(500).json({ error: 'Failed to update vendor offer' });
